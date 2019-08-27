@@ -10,7 +10,9 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "@octokit/app": "^4.1.0",
+    "@octokit/request": "^5.0.2"
   },
   "engines": {
     "node": "8.x"
