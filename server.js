@@ -4,10 +4,14 @@ if (process.env.GIT_EMAIL) {
 
 const { App } = require('@octokit/app')
 const Octokit = require('@octokit/rest')
-
 const express = require('express');
+const basicAuth = require('express-basic-auth')
 const app = express();
 require('longjohn');
+
+app.use(basicAuth({
+  users: { admin: process.env.ADMIN_PASSWORD }
+}))
 
 app.use(express.static('public'));
 

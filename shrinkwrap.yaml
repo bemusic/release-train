@@ -3,7 +3,9 @@ dependencies:
   '@octokit/request': 5.0.2
   '@octokit/rest': 16.28.7
   express: 4.16.4
+  express-basic-auth: 1.2.0
   longjohn: 0.2.12
+  semver: 6.3.0
 packages:
   /@octokit/app/4.1.0:
     dependencies:
@@ -76,6 +78,14 @@ packages:
     dev: false
     resolution:
       integrity: sha1-D+9a1G8b16hQLGVyfwNn1e5D1pY=
+  /basic-auth/2.0.1:
+    dependencies:
+      safe-buffer: 5.1.2
+    dev: false
+    engines:
+      node: '>= 0.8'
+    resolution:
+      integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==
   /before-after-hook/2.1.0:
     dev: false
     resolution:
@@ -221,6 +231,12 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-adbxcyWV46qiHyvSp50TKt05tB4tK3HcmF7/nxfAdhnox83seTDbwnaqKO4sXRy7roHAIFqJP/Rw/AuEbX61LA==
+  /express-basic-auth/1.2.0:
+    dependencies:
+      basic-auth: 2.0.1
+    dev: false
+    resolution:
+      integrity: sha512-iJ0h1Gk6fZRrFmO7tP9nIbxwNgCUJASfNj5fb0Hy15lGtbqqsxpt7609+wq+0XlByZjXmC/rslWQtnuSTVRIcg==
   /express/4.16.4:
     dependencies:
       accepts: 1.3.5
@@ -610,6 +626,11 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
+  /semver/6.3.0:
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
   /send/0.16.2:
     dependencies:
       debug: 2.6.9
@@ -762,4 +783,6 @@ specifiers:
   '@octokit/request': ^5.0.2
   '@octokit/rest': ^16.28.7
   express: ^4.16.4
+  express-basic-auth: ^1.2.0
   longjohn: ^0.2.12
+  semver: ^6.3.0
