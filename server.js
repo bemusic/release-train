@@ -7,6 +7,7 @@ const Octokit = require('@octokit/rest')
 
 const express = require('express');
 const app = express();
+require('longjohn');
 
 app.use(express.static('public'));
 
@@ -34,14 +35,18 @@ app.post('/prepare', async function(req, res, next) {
     const masterResponse = await gh.git.getRef({
       owner,
       repo,
-      ref: 'refs/heads/master'
+      ref: 'heads/master'
     })
     const masterSha = masterResponse.data.object.sha
     log(`master branch is at ${masterSha}`)
     if (!masterSha) {
       throw new Error('Expected masterSha to exist')
     }
-    await forcePushRef('refs/heads/release-train/prepare', masterSha)
+    await gh.git.createRef({
+      owner, repo,
+      ref: 'refs/heads/release-train/prepare',
+      sha: masterSha
+    })
 
     // Merge each PR to this branch
     let headSha = masterSha
@@ -59,6 +64,7 @@ app.post('/prepare', async function(req, res, next) {
         if (!headSha) {
           throw new Error('Expected headSha to exist')
         }
+        log(`Merged pull request #${pull.number} from ${pull.head.ref} -> ${headSha}`)
       } catch (e) {
         log(`Failed to merge pull request #${pull.number}: ${e}`)
       }
@@ -67,18 +73,26 @@ app.post('/prepare', async function(req, res, next) {
     // Update the proposed branch
     const forcePushRef = async (ref, sha) => {
       try {
+        log(`Updating ref ${ref} -> ${sha}`)
         await gh.git.updateRef({ owner, repo, ref, sha, force: true })
       } catch (e) {
         if (e.status === 404) {
+          log(`404 - Creating ref ${ref} -> ${sha}`)
           await gh.git.createRef({ owner, repo, ref, sha })
         } else {
           throw e
         }
       }
     }
-    await forcePushRef('refs/heads/release-train/proposed', headSha)
 
-    // 
+    log(`Updating proposed branch`)
+    await forcePushRef('heads/release-train/proposed', headSha)
+
+    log(`Deleting preparation branch`)
+    await gh.git.deleteRef({
+      owner, repo,
+      ref: 'heads/release-train/prepare',
+    })
 
     res.send('OK!')
   } catch (e) {

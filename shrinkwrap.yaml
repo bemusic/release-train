@@ -3,6 +3,7 @@ dependencies:
   '@octokit/request': 5.0.2
   '@octokit/rest': 16.28.7
   express: 4.16.4
+  longjohn: 0.2.12
 packages:
   /@octokit/app/4.1.0:
     dependencies:
@@ -104,6 +105,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk=
+  /buffer-from/1.1.1:
+    dev: false
+    resolution:
+      integrity: sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
   /bytes/3.0.0:
     dev: false
     engines:
@@ -413,6 +418,14 @@ packages:
     dev: false
     resolution:
       integrity: sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
+  /longjohn/0.2.12:
+    dependencies:
+      source-map-support: 0.5.13
+    dev: false
+    engines:
+      node: '>= 0.9.3'
+    resolution:
+      integrity: sha1-fKdEawg2VcN351EiE9x1TVKmSn4=
   /lru-cache/5.1.1:
     dependencies:
       yallist: 3.0.3
@@ -650,6 +663,19 @@ packages:
     dev: false
     resolution:
       integrity: sha1-tf3AjxKH6hF4Yo5BXiUTK3NkbG0=
+  /source-map-support/0.5.13:
+    dependencies:
+      buffer-from: 1.1.1
+      source-map: 0.6.1
+    dev: false
+    resolution:
+      integrity: sha512-SHSKFHadjVA5oR4PPqhtAVdcBWwRYVd6g6cAXnIbRiIwc2EhPrTuKUBdSLvlEKyIP3GCf89fltvcZiP9MMFA1w==
+  /source-map/0.6.1:
+    dev: false
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
   /statuses/1.4.0:
     dev: false
     engines:
@@ -736,3 +762,4 @@ specifiers:
   '@octokit/request': ^5.0.2
   '@octokit/rest': ^16.28.7
   express: ^4.16.4
+  longjohn: ^0.2.12
