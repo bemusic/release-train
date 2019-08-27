@@ -76,9 +76,9 @@ app.post('/prepare', async function(req, res, next) {
         log(`Updating ref ${ref} -> ${sha}`)
         await gh.git.updateRef({ owner, repo, ref, sha, force: true })
       } catch (e) {
-        if (e.status === 404) {
-          log(`404 - Creating ref ${ref} -> ${sha}`)
-          await gh.git.createRef({ owner, repo, ref, sha })
+        if (e.status === 422) {
+          log(`422 - Creating ref ${ref} -> ${sha}`)
+          await gh.git.createRef({ owner, repo, ref: 'refs/' + ref, sha })
         } else {
           throw e
         }
