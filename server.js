@@ -13,12 +13,15 @@ app.use(express.static('public'));
 app.post('/prepare', async function(req, res, next) {
   try {
     const gh = getGitHubClient()
+    const owner = 'bemusic'
+    const repo = 'bemuse'
 
     // Create a preparation branch
-    octokit.pulls.list({
-  owner,
-  repo
-})
+    const pulls = await gh.pulls.list({
+      owner,
+      repo
+    })
+    console.log(...pulls.data)
     res.send('OK!')
   } catch (e) {
     next(e)
@@ -33,11 +36,12 @@ const listener = app.listen(process.env.PORT, function() {
 function getGitHubClient() {
   const app = new App({ id: process.env.GH_APP_ID, privateKey: Buffer.from(process.env.GH_APP_PRIVATE_KEY_BASE64, 'base64').toString() })
   const octokit = new Octokit({
-   async auth () {
-     const installationAccessToken = await app.getInstallationAccessToken({ 
-       installationId: process.env.GH_APP_INSTALLATION_ID 
-     });
-     return `token ${installationAccessToken}`;
-   }
+    async auth () {
+      const installationAccessToken = await app.getInstallationAccessToken({ 
+        installationId: process.env.GH_APP_INSTALLATION_ID 
+      });
+      return `token ${installationAccessToken}`;
+    }
   })
+  return octokit
 }
