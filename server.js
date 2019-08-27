@@ -15,13 +15,41 @@ app.post('/prepare', async function(req, res, next) {
     const gh = getGitHubClient()
     const owner = 'bemusic'
     const repo = 'bemuse'
+    const log = console.log
+
+    // Fetch the pull requests
+    const pullsResponse = await gh.pulls.list({
+      owner,
+      repo,
+      per_page: 100,
+      sort: 'created',
+      direction: 'asc',
+    })
+    log(`Pull requests fetched: ${pullsResponse.data.length}`)
+
+    const pullsToPrepare = pullsResponse.data.filter(p => p.labels.map(l => l.name).includes('c:ready'))
+    log(`Pull requests to prepare: ${pullsToPrepare.length}`)
 
     // Create a preparation branch
-    const pulls = await gh.pulls.list({
+    const masterResponse = await gh.git.getRef({
       owner,
-      repo
+      repo,
+      ref: 'refs/heads/master'
     })
-    console.log(...pulls.data)
+    lo
+    try {
+      await gh.git.deleteRef({
+        owner,
+        repo,
+        ref: 'refs/heads/release-train/prepare'
+      })
+    } catch (e) {
+    }
+
+    for (const pull of pullsToPrepare) {
+      log(`Preparing pull request #${pull.number}`)
+    }
+
     res.send('OK!')
   } catch (e) {
     next(e)
