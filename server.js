@@ -36,19 +36,49 @@ app.post('/prepare', async function(req, res, next) {
       repo,
       ref: 'refs/heads/master'
     })
-    lo
-    try {
-      await gh.git.deleteRef({
-        owner,
-        repo,
-        ref: 'refs/heads/release-train/prepare'
-      })
-    } catch (e) {
+    const masterSha = masterResponse.data.object.sha
+    log(`master branch is at ${masterSha}`)
+    if (!masterSha) {
+      throw new Error('Expected masterSha to exist')
     }
+    await forcePushRef('refs/heads/release-train/prepare', masterSha)
 
+    // Merge each PR to this branch
+    let headSha = masterSha
     for (const pull of pullsToPrepare) {
       log(`Preparing pull request #${pull.number}`)
+      try {
+        const mergeResponse = await gh.repos.merge({
+          owner,
+          repo,
+          base: 'release-train/prepare',
+          head: pull.head.ref,
+          commit_message: `Merge pull request #${pull.number} from ${pull.head.ref}`,
+        })
+        headSha = mergeResponse.data.sha
+        if (!headSha) {
+          throw new Error('Expected headSha to exist')
+        }
+      } catch (e) {
+        log(`Failed to merge pull request #${pull.number}: ${e}`)
+      }
     }
+
+    // Update the proposed branch
+    const forcePushRef = async (ref, sha) => {
+      try {
+        await gh.git.updateRef({ owner, repo, ref, sha, force: true })
+      } catch (e) {
+        if (e.status === 404) {
+          await gh.git.createRef({ owner, repo, ref, sha })
+        } else {
+          throw e
+        }
+      }
+    }
+    await forcePushRef('refs/heads/release-train/proposed', headSha)
+
+    // 
 
     res.send('OK!')
   } catch (e) {
