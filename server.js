@@ -209,7 +209,24 @@ app.post('/prepare/:version', async function(req, res, next) {
     headSha = changelogUpdateResponse.data.commit.sha
     log(`Updated changelog -> ${headSha}`)
 
-    // Update package version
+    // Update package.json version
+    const packageJSONResponse = await gh.repos.getContents({
+      owner,
+      repo,
+      path: 'package.json',
+      ref: headSha,
+    })
+    const packageJSONUpdateResponse = await gh.repos.createOrUpdateFile({
+      owner,
+      repo,
+      path: 'CHANGELOG.md',
+      message: 'Prepare changelog for ' + preVersion,
+      content: Buffer.from(newChangelog).toString('base64'),
+      branch: 'release-train/prepare',
+      sha: changelogResponse.data.sha,
+    })
+    headSha = packageJSONUpdateResponse.data.commit.sha
+    log(`Updated package.json -> ${headSha}`)
 
     // Update the proposed branch
     const forcePushRef = async (ref, sha) => {
