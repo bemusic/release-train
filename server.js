@@ -10,7 +10,9 @@ const app = express();
 require('longjohn');
 
 const authenticated = basicAuth({
-  users: { admin: process.env.ADMIN_PASSWORD }
+  users: { admin: process.env.ADMIN_PASSWORD },
+  challenge: true,
+  realm: 'bemuse-release-train',
 })
 
 app.use(authenticated)
@@ -35,17 +37,20 @@ app.get('/changelog', async function(req, res, next) {
 
     const pullsToPrepare = pullsResponse.data.filter(p => p.labels.map(l => l.name).includes('c:ready'))
     const markdown = getMarkdown(pullsToPrepare)
-    const htmlResponse = gh.markdown.render({
-      text: markdown
+    const htmlResponse = await gh.markdown.render({
+      text: markdown,
+      context: `${owner}/${repo}`
     })
-    res.send(htmlResponse)
+    console.log(htmlResponse)
+    res.send(htmlResponse.data)
   } catch (e) {
     next(e)
   }
 })
 
-function getMarkdown(pulls) {
-  return '# meow\n...'
+function getMarkdown(pulls, version = 'UNRELEASED') {
+  const markdown = `## ${version}`
+  return markdown
 }
 
 app.post('/prepare', async function(req, res, next) {
