@@ -51,12 +51,22 @@ app.get('/changelog', async function(req, res, next) {
 const indent = require('indent-string')
 
 function getMarkdown(pulls, version = 'UNRELEASED') {
+  const pullMap = new Map()
+  const newUsers = new Set()
   const bulletPoints = pulls
-    .map(p => p.body.match(/### Changelog\s*\n([^]+)/))
-    .filter(m => m)
-    .map(m => `- ${indent(m[1].trim(), 2).substr(2)}`)
+    .map(p => ({
+      match: p.body.match(/### Changelog\s*\n([^]+)/),
+      pull: p,
+    }))
+    .filter(x => x.match)
+    .map(x => {
+      pullMap.set(x.pull.number, x.pull)
+      newUsers.add(x.pull.user.log)
+      return `- ${indent(x.match[1].trim(), 2).substr(2)} [#${x.pull.number}], by [@${x.pull.user.login}]`
+    })
     .join('\n\n')
-  const markdown = `## ${version}\n\n${bulletPoints}`
+  const pullRefs = [...pullMap].map(([number, pull]) => `[#${number}]: ${pull.html_url}`).join('\n')
+  const markdown = `## ${version}\n\n${bulletPoints}\n\n${pullRefs}`
   return markdown
 }
 

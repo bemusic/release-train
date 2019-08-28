@@ -6,6 +6,7 @@ dependencies:
   express-basic-auth: 1.2.0
   indent-string: 4.0.0
   longjohn: 0.2.12
+  prettier: 1.18.2
   semver: 6.3.0
 packages:
   /@octokit/app/4.1.0:
@@ -577,6 +578,13 @@ packages:
     dev: false
     resolution:
       integrity: sha1-32BBeABfUi8V60SQ5yR6G/qmf4w=
+  /prettier/1.18.2:
+    dev: false
+    engines:
+      node: '>=4'
+    hasBin: true
+    resolution:
+      integrity: sha512-OeHeMc0JhFE9idD4ZdtNibzY0+TPHSpSSb9h8FqtP+YnoZZ1sl8Vc9b1sasjfymH3SonAF4QcA2+mzHPhMvIiw==
   /proxy-addr/2.0.4:
     dependencies:
       forwarded: 0.1.2
@@ -793,4 +801,5 @@ specifiers:
   express-basic-auth: ^1.2.0
   indent-string: ^4.0.0
   longjohn: ^0.2.12
+  prettier: ^1.17.1
   semver: ^6.3.0
