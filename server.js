@@ -34,14 +34,21 @@ app.get('/changelog', async function(req, res, next) {
       sort: 'created',
       direction: 'asc',
     })
+    
+    // Fetch existing changelog
+    const changelogResponse = await gh.repos.getContents({
+      owner,
+      repo,
+      path: 'CHANGELOG.md'
+    })
+    const existingChangelog = Buffer.from(changelogResponse.data.content, 'base64').toString()
 
     const pullsToPrepare = pullsResponse.data.filter(p => p.labels.map(l => l.name).includes('c:ready'))
-    const markdown = getMarkdown(pullsToPrepare)
+    const markdown = updateChangelog(existingChangelog, pullsToPrepare)
     const htmlResponse = await gh.markdown.render({
       text: markdown,
       context: `${owner}/${repo}`
     })
-    console.log(htmlResponse)
     res.send(htmlResponse.data)
   } catch (e) {
     next(e)
@@ -49,15 +56,16 @@ app.get('/changelog', async function(req, res, next) {
 })
 
 const indent = require('indent-string')
+const _ = require('lodash')
 
-function getMarkdown(pulls, version = 'UNRELEASED') {
+function updateChangelog(existingChangelog, pulls, version = 'UNRELEASED') {
   const pullMap = new Map()
   const newUsers = new Map()
   const registerUser = u => {
     newUsers.set(u.toLowerCase(), u)
     return `[@${u}]`
   }
-  const bulletPoints = pulls
+  const bullets = pulls
     .map(p => ({
       match: p.body.match(/### Changelog\s*\n([^]+)/),
       pull: p,
@@ -68,8 +76,22 @@ function getMarkdown(pulls, version = 'UNRELEASED') {
       const text = x.match[1].trim().replace(/\[@([^\]\s]+)\]/, (a, id) => {
         return registerUser(id)
       })
-      return `- ${indent(text, 2).substr(2)} [#${x.pull.number}], by ${registerUser(x.pull.user.login)}`
+      return {
+        text: `- ${indent(text, 2).substr(2)} [#${x.pull.number}], by ${registerUser(x.pull.user.login)}`,
+        category: (x.pull.labels.find(l => l.name.startsWith('category:')) || { name: 'category:Others' }).name.replace(/category:/, ''),
+      }
     })
+  const bulletPoints = _.chain(bullets)
+    .groupBy(b => b.category)
+    .map((v, k) => {
+      return {
+        text: `### ${k}\n\n` + v.map(b => b.text).join('\n'),
+        order: (['New stuff'].indexOf(k) + 1) || 999999,
+      }
+    })
+    .sortBy(b => b.order)
+    .value()
+    .map(c => c.text)
     .join('\n\n')
   const pullRefs = [...pullMap].map(([number, pull]) => `[#${number}]: ${pull.html_url}`).join('\n')
   const newUserRefs = [...newUsers].map(([k, u]) => `[@${k}]: https://github.com/${u}`).join('\n')
