@@ -234,11 +234,16 @@ app.post('/prepare/:version', async function(req, res, next) {
       ref: 'heads/release-train/prepare',
     })
 
+    const pullBody = `This is an automatically-generated pull request which will merge these pull requests:\n\n` +
+      mergedPulls.map(p => {
+        return `- #${p.number} @ ${p.head.sha} “${p.title}” by @${p.user.login}`
+      }).join('\n')
     if (existingPull) {
       await gh.pulls.update({
         owner,
         repo,
         pull_number: existingPull.number,
+        body: pullBody,
       })
     } else {
       await gh.pulls.create({
@@ -247,6 +252,7 @@ app.post('/prepare/:version', async function(req, res, next) {
         title: version,
         head: 'release-train/proposed',
         base: 'master',
+        body: pullBody,
       })
     }
 
