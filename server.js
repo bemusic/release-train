@@ -52,7 +52,11 @@ const indent = require('indent-string')
 
 function getMarkdown(pulls, version = 'UNRELEASED') {
   const pullMap = new Map()
-  const newUsers = new Set()
+  const newUsers = new Map()
+  const registerUser = u => {
+    newUsers.set(u.toLowerCase(), u)
+    return `[@${u}]`
+  }
   const bulletPoints = pulls
     .map(p => ({
       match: p.body.match(/### Changelog\s*\n([^]+)/),
@@ -61,12 +65,15 @@ function getMarkdown(pulls, version = 'UNRELEASED') {
     .filter(x => x.match)
     .map(x => {
       pullMap.set(x.pull.number, x.pull)
-      newUsers.add(x.pull.user.log)
-      return `- ${indent(x.match[1].trim(), 2).substr(2)} [#${x.pull.number}], by [@${x.pull.user.login}]`
+      const text = x.match[1].trim().replace(/\[@([^\]\s]+)\]/, (a, id) => {
+        return registerUser(id)
+      })
+      return `- ${indent(text, 2).substr(2)} [#${x.pull.number}], by ${registerUser(x.pull.user.login)}`
     })
     .join('\n\n')
   const pullRefs = [...pullMap].map(([number, pull]) => `[#${number}]: ${pull.html_url}`).join('\n')
-  const markdown = `## ${version}\n\n${bulletPoints}\n\n${pullRefs}`
+  const newUserRefs = [...newUsers].map(([k, u]) => `[@${k}]: https://github.com/${u}`).join('\n')
+  const markdown = `## ${version}\n\n${bulletPoints}\n\n${pullRefs}\n\n${newUserRefs}`
   return markdown
 }
 

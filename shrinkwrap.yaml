@@ -5,6 +5,7 @@ dependencies:
   express: 4.16.4
   express-basic-auth: 1.2.0
   indent-string: 4.0.0
+  lodash: 4.17.15
   longjohn: 0.2.12
   prettier: 1.18.2
   semver: 6.3.0
@@ -442,6 +443,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
+  /lodash/4.17.15:
+    dev: false
+    resolution:
+      integrity: sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
   /longjohn/0.2.12:
     dependencies:
       source-map-support: 0.5.13
@@ -800,6 +805,7 @@ specifiers:
   express: ^4.16.4
   express-basic-auth: ^1.2.0
   indent-string: ^4.0.0
+  lodash: ^4.17.15
   longjohn: ^0.2.12
   prettier: ^1.17.1
   semver: ^6.3.0
