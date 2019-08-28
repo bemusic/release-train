@@ -7,7 +7,17 @@ const Octokit = require('@octokit/rest')
 const express = require('express');
 const basicAuth = require('express-basic-auth')
 const app = express();
+const prettier = require('prettier')
 require('longjohn');
+
+// https://github.com/bemusic/bemuse/blob/master/.prettierrc
+const prettierConfig = {
+  "singleQuote": true,
+  "semi": false,
+  "proseWrap": "always",
+  "trailingComma": "es5",
+  "jsxSingleQuote": true
+}
 
 const authenticated = basicAuth({
   users: { admin: process.env.ADMIN_PASSWORD },
@@ -59,10 +69,18 @@ const indent = require('indent-string')
 const _ = require('lodash')
 
 function updateChangelog(existingChangelog, pulls, version = 'UNRELEASED') {
+  const userListRegExp = /((?:\[@\w+\]: https.+\n)+)/
+  const userList = existingChangelog.match(userListRegExp)
+
+  const existingUsers = new Set()
+  userList[1].replace(/@(\w+)/g, (a, id) => {
+    existingUsers.add(id.toLowerCase())
+  })
+
   const pullMap = new Map()
   const newUsers = new Map()
   const registerUser = u => {
-    newUsers.set(u.toLowerCase(), u)
+    if (!existingUsers.has(u.toLowerCase())) newUsers.set(u.toLowerCase(), u)
     return `[@${u}]`
   }
   const bullets = pulls
@@ -95,11 +113,18 @@ function updateChangelog(existingChangelog, pulls, version = 'UNRELEASED') {
     .join('\n\n')
   const pullRefs = [...pullMap].map(([number, pull]) => `[#${number}]: ${pull.html_url}`).join('\n')
   const newUserRefs = [...newUsers].map(([k, u]) => `[@${k}]: https://github.com/${u}`).join('\n')
-  const markdown = `## ${version}\n\n${bulletPoints}\n\n${pullRefs}\n\n${newUserRefs}`
-  return markdown
+  const newMarkdown = `## ${version}\n\n${bulletPoints}\n\n${pullRefs}`
+  let markdown = existingChangelog
+    .replace(userListRegExp, a => {
+      return a + newUserRefs + '\n'
+    })
+    .replace(/## /, a => {
+      return newMarkdown + '\n\n' + a
+    })
+  return prettier.format(markdown, { ...prettierConfig, parser: 'markdown' })
 }
 
-app.post('/prepare', async function(req, res, next) {
+app.post('/prepare/:version', async function(req, res, next) {
   try {
     const gh = getGitHubClient()
     const log = console.log
@@ -113,6 +138,9 @@ app.post('/prepare', async function(req, res, next) {
       direction: 'asc',
     })
     log(`Pull requests fetched: ${pullsResponse.data.length}`)
+
+    // Existing pull request for release
+    const existingPull = pullsResponse.data.find(p => p.head.ref === 'release-train/proposed')
 
     const pullsToPrepare = pullsResponse.data.filter(p => p.labels.map(l => l.name).includes('c:ready'))
     log(`Pull requests to prepare: ${pullsToPrepare.length}`)
@@ -136,6 +164,7 @@ app.post('/prepare', async function(req, res, next) {
 
     // Merge each PR to this branch
     let headSha = masterSha
+    const mergedPulls = []
     for (const pull of pullsToPrepare) {
       log(`Preparing pull request #${pull.number}`)
       try {
@@ -151,10 +180,35 @@ app.post('/prepare', async function(req, res, next) {
           throw new Error('Expected headSha to exist')
         }
         log(`Merged pull request #${pull.number} from ${pull.head.ref} -> ${headSha}`)
+        mergedPulls.push(pull)
       } catch (e) {
         log(`Failed to merge pull request #${pull.number}: ${e}`)
       }
     }
+
+    // Update changelog
+    const changelogResponse = await gh.repos.getContents({
+      owner,
+      repo,
+      path: 'CHANGELOG.md',
+      ref: headSha,
+    })
+    const existingChangelog = Buffer.from(changelogResponse.data.content, 'base64').toString()
+    const version = req.params.version.replace(/^(\d)/, 'v$1')
+    const newChangelog = updateChangelog(existingChangelog, mergedPulls, version)
+    const changelogUpdateResponse = await gh.repos.createOrUpdateFile({
+      owner,
+      repo,
+      path: 'CHANGELOG.md',
+      message: 'Update changelog',
+      content: Buffer.from(newChangelog).toString('base64'),
+      branch: 'release-train/prepare',
+      sha: changelogResponse.data.sha,
+    })
+    headSha = changelogUpdateResponse.data.commit.sha
+    log(`Updated changelog -> ${headSha}`)
+
+    // Update package version
 
     // Update the proposed branch
     const forcePushRef = async (ref, sha) => {
@@ -179,6 +233,22 @@ app.post('/prepare', async function(req, res, next) {
       owner, repo,
       ref: 'heads/release-train/prepare',
     })
+
+    if (existingPull) {
+      await gh.pulls.update({
+        owner,
+        repo,
+        pull_number: existingPull.number,
+      })
+    } else {
+      await gh.pulls.create({
+        owner,
+        repo,
+        title: version,
+        head: 'release-train/proposed',
+        base: 'master',
+      })
+    }
 
     res.send('OK!')
   } catch (e) {
