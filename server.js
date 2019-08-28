@@ -48,8 +48,15 @@ app.get('/changelog', async function(req, res, next) {
   }
 })
 
+const indent = require('indent-string')
+
 function getMarkdown(pulls, version = 'UNRELEASED') {
-  const markdown = `## ${version}`
+  const bulletPoints = pulls
+    .map(p => p.body.match(/### Changelog\s*\n([^]+)/))
+    .filter(m => m)
+    .map(m => `- ${indent(m[1].trim(), 2).substr(2)}`)
+    .join('\n\n')
+  const markdown = `## ${version}\n\n${bulletPoints}`
   return markdown
 }
 

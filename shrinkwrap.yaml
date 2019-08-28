@@ -4,6 +4,7 @@ dependencies:
   '@octokit/rest': 16.28.7
   express: 4.16.4
   express-basic-auth: 1.2.0
+  indent-string: 4.0.0
   longjohn: 0.2.12
   semver: 6.3.0
 packages:
@@ -327,6 +328,12 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-neyTUVFtahjf0mB3dZT77u+8O0QB89jFdnBkd5P1JgYPbPaia3gXXOVL2fq8VyU2gMMD7SaN7QukTB/pmXYvDA==
+  /indent-string/4.0.0:
+    dev: false
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==
   /inherits/2.0.3:
     dev: false
     resolution:
@@ -784,5 +791,6 @@ specifiers:
   '@octokit/rest': ^16.28.7
   express: ^4.16.4
   express-basic-auth: ^1.2.0
+  indent-string: ^4.0.0
   longjohn: ^0.2.12
   semver: ^6.3.0

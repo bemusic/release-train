@@ -16,7 +16,8 @@
     "@octokit/rest": "^16.28.7",
     "longjohn": "^0.2.12",
     "semver": "^6.3.0",
-    "express-basic-auth": "^1.2.0"
+    "express-basic-auth": "^1.2.0",
+    "indent-string": "^4.0.0"
   },
   "engines": {
     "node": "8.x"
