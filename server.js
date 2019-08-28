@@ -195,12 +195,13 @@ app.post('/prepare/:version', async function(req, res, next) {
     })
     const existingChangelog = Buffer.from(changelogResponse.data.content, 'base64').toString()
     const version = req.params.version.replace(/^(\d)/, 'v$1')
-    const newChangelog = updateChangelog(existingChangelog, mergedPulls, version)
+    const preVersion = version + '-pre.' + new Date().toJSON().replace(/\D/g, '').substr(0, 12)
+    const newChangelog = updateChangelog(existingChangelog, mergedPulls, preVersion)
     const changelogUpdateResponse = await gh.repos.createOrUpdateFile({
       owner,
       repo,
       path: 'CHANGELOG.md',
-      message: 'Update changelog',
+      message: 'Prepare changelog for ' + preVersion,
       content: Buffer.from(newChangelog).toString('base64'),
       branch: 'release-train/prepare',
       sha: changelogResponse.data.sha,
@@ -238,18 +239,20 @@ app.post('/prepare/:version', async function(req, res, next) {
       mergedPulls.map(p => {
         return `- #${p.number} @ ${p.head.sha} “${p.title}” by @${p.user.login}`
       }).join('\n')
+    const pullTitle = `Prepare release of Bemuse ${version}`
     if (existingPull) {
       await gh.pulls.update({
         owner,
         repo,
         pull_number: existingPull.number,
         body: pullBody,
+        title: pullTitle,
       })
     } else {
       await gh.pulls.create({
         owner,
         repo,
-        title: version,
+        title: pullTitle,
         head: 'release-train/proposed',
         base: 'master',
         body: pullBody,
