@@ -9,17 +9,48 @@ const basicAuth = require('express-basic-auth')
 const app = express();
 require('longjohn');
 
-app.use(basicAuth({
+const authenticated = basicAuth({
   users: { admin: process.env.ADMIN_PASSWORD }
-}))
+})
 
-app.use(express.static('public'));
+app.use(authenticated)
+app.use(express.static('public'))
+
+const owner = 'bemusic'
+const repo = 'bemuse'
+
+app.get('/changelog', async function(req, res, next) {
+  try {
+    const gh = getGitHubClient()
+    const log = console.log
+
+    // Fetch the pull requests
+    const pullsResponse = await gh.pulls.list({
+      owner,
+      repo,
+      per_page: 100,
+      sort: 'created',
+      direction: 'asc',
+    })
+
+    const pullsToPrepare = pullsResponse.data.filter(p => p.labels.map(l => l.name).includes('c:ready'))
+    const markdown = getMarkdown(pullsToPrepare)
+    const htmlResponse = gh.markdown.render({
+      text: markdown
+    })
+    res.send(htmlResponse)
+  } catch (e) {
+    next(e)
+  }
+})
+
+function getMarkdown(pulls) {
+  return '# meow\n...'
+}
 
 app.post('/prepare', async function(req, res, next) {
   try {
     const gh = getGitHubClient()
-    const owner = 'bemusic'
-    const repo = 'bemuse'
     const log = console.log
 
     // Fetch the pull requests
