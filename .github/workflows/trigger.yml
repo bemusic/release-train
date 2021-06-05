@@ -1,0 +1,12 @@
+name: Trigger release train
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Target version
+        required: true
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - curl -X POST ${{ secrets.RELEASE_TRAIN_URL }}/prepare/${{ github.event.inputs.version }}
