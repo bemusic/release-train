@@ -9,4 +9,4 @@ jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
-      - curl -X POST ${{ secrets.RELEASE_TRAIN_URL }}/prepare/${{ github.event.inputs.version }}
+      - run: curl -X POST ${{ secrets.RELEASE_TRAIN_URL }}/prepare/${{ github.event.inputs.version }}
