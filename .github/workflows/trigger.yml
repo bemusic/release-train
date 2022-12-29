@@ -1,4 +1,5 @@
 name: Trigger release train
+run-name: Trigger release train for version ${{ inputs.version }}
 on:
   workflow_dispatch:
     inputs:
